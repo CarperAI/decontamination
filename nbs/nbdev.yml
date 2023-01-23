@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "decontamination"
+  site-url: "https://CarperAI.github.io/decontamination"
+  description: "This repository contains code for cleaning your training data of benchmark data to help combat data snooping."
+  repo-branch: main
+  repo-url: "https://github.com/CarperAI/decontamination"
