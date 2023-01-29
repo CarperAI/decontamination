@@ -114,7 +114,7 @@ def process_ds_config(name, ds_dict):
     for config, splits in ds_dict.items():
         for split in splits:
             # print(name, config, split)
-            ds = load_dataset(name, config, split=split)
+            ds = load_dataset(name, config, split=split, num_proc=os.cpu_count())
             remove_columns = []
             for column, val_type in ds.features.items():
                 if val_type.dtype != "string":
