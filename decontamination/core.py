@@ -17,6 +17,7 @@ import numpy as np
 
 from datasets import Dataset, load_dataset, load_from_disk, Features, Sequence, Value
 from datasketch import LeanMinHash, MinHash, MinHashLSH
+from pathlib import Path
 from rich.logging import RichHandler
 from tqdm.auto import tqdm
 
@@ -92,15 +93,7 @@ def convert_list_to_dict(list):
             result[config].append(split)
         else:
             result[config] = [split]
-    
-    final_result = {}
-    for config, splits in result.items():
-        if "all" in config:
-            final_result = {config: splits}
-            break
-        else:
-            final_result[config] = splits
-    return final_result
+    return result
 
 # %% ../nbs/00_core.ipynb 12
 def config_lists(name):
@@ -151,7 +144,11 @@ class BenchmarkCleaner:
         self.hash_benchmark_datasets()
     
     def hash_benchmark_datasets(self):
-        self.benchmarks_paths = [os.path.join(self.output_dir, d) for d in os.listdir(self.output_dir) if os.path.isdir(os.path.join(self.output_dir, d))]
+        # grab all directories in the output directory and subdirectories
+        self.benchmarks_paths = [
+            str(path.parent)
+            for path in Path(self.output_dir).rglob("*.json")
+        ]
         if len(self.benchmarks_paths) == 0:
             for name in self.bm_names:
                 ds_dict = config_lists(name)
