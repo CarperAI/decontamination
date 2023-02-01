@@ -113,8 +113,11 @@ def config_lists(name):
 def process_ds_config(name, ds_dict):
     for config, splits in ds_dict.items():
         for split in splits:
-            # print(name, config, split)
-            ds = load_dataset(name, config, split=split, num_proc=os.cpu_count())
+            try:
+                ds = load_dataset(name, config, split=split, num_proc=os.cpu_count())
+            except:
+                logger.error(f"Failed to load {name} {config} {split}")
+                continue
             remove_columns = []
             for column, val_type in ds.features.items():
                 if val_type.dtype != "string":
