@@ -18,5 +18,8 @@ d = { 'settings': { 'branch': 'main',
                                       'decontamination.core.hash_content': ('core.html#hash_content', 'decontamination/core.py'),
                                       'decontamination.core.jaccard_similarity': ( 'core.html#jaccard_similarity',
                                                                                    'decontamination/core.py'),
+                                      'decontamination.core.parallelized_function': ( 'core.html#parallelized_function',
+                                                                                      'decontamination/core.py'),
                                       'decontamination.core.process_ds_config': ('core.html#process_ds_config', 'decontamination/core.py'),
+                                      'decontamination.core.process_record': ('core.html#process_record', 'decontamination/core.py'),
                                       'decontamination.core.query_content': ('core.html#query_content', 'decontamination/core.py')}}}

@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['logger', 'MINHASH_SEED', 'NON_ALPHA', 'hash_content', 'query_content', 'jaccard_similarity', 'convert_list_to_dict',
-           'config_lists', 'process_ds_config', 'BenchmarkCleaner']
+           'config_lists', 'process_ds_config', 'process_record', 'parallelized_function', 'BenchmarkCleaner']
 
 # %% ../nbs/00_core.ipynb 2
 import datasets
@@ -11,11 +11,12 @@ import multiprocessing
 import os
 import re
 import requests
+import shutil
 import time
 
 import numpy as np
 
-from datasets import Dataset, load_dataset, load_from_disk, Features, Sequence, Value
+from datasets import concatenate_datasets, Dataset, load_dataset, load_from_disk, Features, Sequence, Value
 from datasketch import LeanMinHash, MinHash, MinHashLSH
 from pathlib import Path
 from rich.logging import RichHandler
@@ -110,12 +111,15 @@ def config_lists(name):
     return convert_list_to_dict(data["splits"])
 
 # %% ../nbs/00_core.ipynb 14
-def process_ds_config(name, ds_dict):
+def process_ds_config(name, ds_dict, output_dir):
     for config, splits in ds_dict.items():
         for split in splits:
+            config_name = f"{name}_{config}_{split}"
+            benchmarks_path = os.path.join(output_dir, config_name)
             try:
                 ds = load_dataset(name, config, split=split, num_proc=os.cpu_count())
-            except:
+            except Exception as e:
+                logger.error(e)
                 logger.error(f"Failed to load {name} {config} {split}")
                 continue
             remove_columns = []
@@ -124,9 +128,29 @@ def process_ds_config(name, ds_dict):
                     remove_columns.append(column)
             
             ds = ds.remove_columns(remove_columns)
-            yield ds, f"{name}_{config}_{split}"
+            yield ds, config_name
 
 # %% ../nbs/00_core.ipynb 16
+def process_record(record, check_for_fp, ds, column, benchmarks, threshold):
+    if check_for_fp:
+        neighbors = set(record["__neighbors__"])
+        curr_text = ds[record["__id__"]][column]
+        for neighbor in neighbors:
+            reference = benchmarks[int(neighbor)]
+            reference_text = reference["__content__"]
+            if jaccard_similarity(curr_text, reference_text) >= threshold:
+                break
+        else:
+            return
+    return record["__id__"]
+
+def parallelized_function(queried, check_for_fp, ds, column, benchmarks, threshold, num_workers):
+    with multiprocessing.Pool(processes=num_workers) as pool:
+        results = pool.starmap(process_record, [(record, check_for_fp, ds, column, benchmarks, threshold) for record in queried])
+        dup_ids = {result for result in results if result is not None}
+    return dup_ids
+
+# %% ../nbs/00_core.ipynb 17
 class BenchmarkCleaner:
     """
     A class to clean the benchmark dataset.
@@ -153,13 +177,14 @@ class BenchmarkCleaner:
             for path in Path(self.output_dir).rglob("*.json")
         ]
         if len(self.benchmarks_paths) == 0:
+            global_idx = 0
             for name in self.bm_names:
                 ds_dict = config_lists(name)
-                for benchmark_ds, config_name in process_ds_config(name, ds_dict):
+                for benchmark_ds, config_name in process_ds_config(name, ds_dict, self.output_dir,):
                     benchmark_ds = benchmark_ds.map(
-                            function=lambda x, idx: {
+                            function=lambda x: {
                                 **hash_content(
-                                    idx,
+                                    global_idx,
                                     " ".join(
                                         [x[col] for col in benchmark_ds.column_names if x[col] is not None]
                                     ),
@@ -170,13 +195,13 @@ class BenchmarkCleaner:
                                 ),
                             },
                             num_proc=4,
-                            with_indices=True,
                             desc=f"Fingerprinting...",
                         )
                     # Save the benchmark dataset.
                     benchmarks_path = os.path.join(self.output_dir, config_name)
                     benchmark_ds.save_to_disk(benchmarks_path, max_shard_size="1GB")
                     self.benchmarks_paths.append(benchmarks_path)
+                    global_idx += 1
         else:
             logger.info("Benchmark datasets already exist. Skipping hashing.")
 
@@ -212,57 +237,44 @@ class BenchmarkCleaner:
         )
         # remove unused columns
         hashed_ds = hashed_ds.remove_columns([c for c in hashed_ds.column_names if c not in ["__id__", "__signature__"]])
-        dup_ids = set() # The set of duplicate ids that should be filtered out.
-        # Iterate over the benchmark datasets, hash their content and query the MinHashLSH index.
-        for path in self.benchmarks_paths:
-            globals()[path] = MinHashLSH(
-                threshold=self.threshold,
-                num_perm=self.num_perm,
-            )
-            hashed_benchmark_ds = load_from_disk(path)
-            # Update the global variable with the MinHashLSH index.
-            with globals()[path].insertion_session() as session:
-                for record in hashed_benchmark_ds:
-                    session.insert(record["__id__"], LeanMinHash(seed=MINHASH_SEED, hashvalues=record["__signature__"]))
-            
-            queried = hashed_ds.map(
-                function=lambda x, y: query_content(x, y, index=globals()[path]),
-                num_proc=os.cpu_count(),
-                input_columns=[
-                    "__id__",
-                    "__signature__",
-                ],
-                remove_columns=["__signature__"],
-                desc="Querying...",
-                features=Features(
-                    {
-                        "__id__": Value("uint64"),
-                        "__neighbors__": Sequence(Value("string")),
-                    }
-                ),
-            ).filter(
-                lambda x: len(x["__neighbors__"]) > 0,
-                num_proc=os.cpu_count(),
-                desc=f"Filtering...",
-            )
+        benchmarks = [load_from_disk(path) for path in self.benchmarks_paths]
+        benchmarks = concatenate_datasets(benchmarks)
+        # Update indices to be global.
+        benchmarks = benchmarks.map(
+            lambda _, idx: {"__id__": idx},
+            with_indices=True,
+            num_proc=os.cpu_count(),
+            desc="Adding index...",
+        )
+        minhash = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
+        with minhash.insertion_session() as session:
+            for record in benchmarks:
+                session.insert(record["__id__"], LeanMinHash(seed=MINHASH_SEED, hashvalues=record["__signature__"]))
+        
+        # Query the MinHashLSH index for each record in the provided dataset against the benchmark datasets.
+        queried = hashed_ds.map(
+            function=lambda x, y: query_content(x, y, index=minhash),
+            num_proc=os.cpu_count(),
+            input_columns=[
+                "__id__",
+                "__signature__",
+            ],
+            remove_columns=["__signature__"],
+            desc="Querying...",
+            features=Features(
+                {
+                    "__id__": Value("uint64"),
+                    "__neighbors__": Sequence(Value("string")),
+                }
+            ),
+        ).filter(
+            lambda x: len(x["__neighbors__"]) > 0,
+            num_proc=os.cpu_count(),
+            desc=f"Filtering...",
+        )
 
-            # Update the set of duplicate ids.
-            for record in tqdm(
-                queried,
-                desc=f"Checking for false positives..." if check_for_fp else f"Filtering...",
-            ):
-                if check_for_fp:
-                    neighbors = set(record["__neighbors__"])
-                    curr_text = ds[record["__id__"]][column]
-                    for neighbor in neighbors:
-                        reference = hashed_benchmark_ds[int(neighbor)]
-                        reference_text = reference["__content__"]
-                        if jaccard_similarity(curr_text, reference_text) >= self.threshold:
-                            break
-                    else:
-                        continue
-                dup_ids.add(record["__id__"])
-
+        dup_ids = parallelized_function(queried, check_for_fp, ds, column,benchmarks, self.threshold, os.cpu_count())
+        
         # Filter out the duplicate ids.
         final_data = ds.filter(
             lambda idx: idx not in dup_ids,
