@@ -160,14 +160,16 @@ class BenchmarkCleaner:
         benchmark_names: list, # The list of benchmark names to clean.
         output_dir: str, # The output directory to save the cleaned datasets and intermediate results.
         threshold: float = 0.5, # The threshold to use for the MinHashLSH index.
-        num_perm: int = 128 # The number of permutations to use for the MinHashLSH index.
-        ):
+        num_perm: int = 128, # The number of permutations to use for the MinHashLSH index.
+        num_workers: int = 1 # The number of workers to use for the MinHashLSH index.
+    ):
         self.bm_names = benchmark_names
         self.output_dir = output_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.threshold = threshold
         self.num_perm = num_perm
+        self.num_workers = num_workers
         self.hash_benchmark_datasets()
     
     def hash_benchmark_datasets(self):
@@ -194,7 +196,7 @@ class BenchmarkCleaner:
                                     [x[col] for col in benchmark_ds.column_names if x[col] is not None]
                                 ),
                             },
-                            num_proc=4,
+                            num_proc=self.num_workers,
                             desc=f"Fingerprinting...",
                         )
                     # Save the benchmark dataset.
@@ -224,7 +226,7 @@ class BenchmarkCleaner:
         ds = ds.map(
             lambda _, idx: {"__id__": idx},
             with_indices=True,
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             desc="Adding index...",
         )
         hashed_ds = ds.map(
@@ -232,7 +234,7 @@ class BenchmarkCleaner:
             fn_kwargs={"num_perm": self.num_perm},
             input_columns=["__id__", column],
             remove_columns=[column],
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             desc=f"Fingerprinting...",
         )
         # remove unused columns
@@ -243,7 +245,7 @@ class BenchmarkCleaner:
         benchmarks = benchmarks.map(
             lambda _, idx: {"__id__": idx},
             with_indices=True,
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             desc="Adding index...",
         )
         minhash = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
@@ -254,7 +256,7 @@ class BenchmarkCleaner:
         # Query the MinHashLSH index for each record in the provided dataset against the benchmark datasets.
         queried = hashed_ds.map(
             function=lambda x, y: query_content(x, y, index=minhash),
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             input_columns=[
                 "__id__",
                 "__signature__",
@@ -269,17 +271,17 @@ class BenchmarkCleaner:
             ),
         ).filter(
             lambda x: len(x["__neighbors__"]) > 0,
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             desc=f"Filtering...",
         )
 
-        dup_ids = parallelized_function(queried, check_for_fp, ds, column,benchmarks, self.threshold, os.cpu_count())
+        dup_ids = parallelized_function(queried, check_for_fp, ds, column,benchmarks, self.threshold, self.num_workers)
         
         # Filter out the duplicate ids.
         final_data = ds.filter(
             lambda idx: idx not in dup_ids,
             input_columns=["__id__"],
-            num_proc=os.cpu_count(),
+            num_proc=self.num_workers,
             desc="Filtering duplicates...",
         )
 
