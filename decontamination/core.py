@@ -9,9 +9,9 @@ import datasets
 import logging
 import multiprocessing
 import os
+import pickle
 import re
 import requests
-import shutil
 import time
 
 import numpy as np
@@ -250,10 +250,22 @@ class BenchmarkCleaner:
             num_proc=self.num_workers,
             desc="Adding index to benchmarks...",
         )
-        minhash = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
-        with minhash.insertion_session() as session:
-            for record in benchmarks:
-                session.insert(record["__id__"], LeanMinHash(seed=MINHASH_SEED, hashvalues=record["__signature__"]))
+        minhash_path = os.path.join(self.output_dir, "minhash_index.pkl")
+        if os.path.exists(minhash_path):
+            logger.info("MinHashLSH index already exists. Loading from disk...")
+            with open(minhash_path, "rb") as f:
+                minhash = pickle.load(f)
+        else:
+            logger.info("MinHashLSH index does not exist. Creating...")
+            # Create the MinHashLSH index.
+            minhash = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
+            with minhash.insertion_session() as session:
+                for record in tqdm(benchmarks, desc="Inserting benchmarks into MinHashLSH index..."):
+                    session.insert(record["__id__"], LeanMinHash(seed=MINHASH_SEED, hashvalues=record["__signature__"]))
+
+            # Save the MinHashLSH index.
+            with open(os.path.join(self.output_dir, "minhash_index.pkl"), "wb") as f:
+                pickle.dump(minhash, f)
         
         # Query the MinHashLSH index for each record in the provided dataset against the benchmark datasets.
         queried = hashed_ds.map(
