@@ -171,7 +171,7 @@ class BenchmarkCleaner:
         self.num_perm = num_perm
         self.num_workers = num_workers
         self.hash_benchmark_datasets()
-    
+
     def hash_benchmark_datasets(self):
         # grab all directories in the output directory and subdirectories
         self.benchmarks_paths = [
@@ -227,7 +227,7 @@ class BenchmarkCleaner:
             lambda _, idx: {"__id__": idx},
             with_indices=True,
             num_proc=self.num_workers,
-            desc="Adding index...",
+            desc="Adding index to dataset...",
         )
         hashed_ds = ds.map(
             function=hash_content,
@@ -235,18 +235,20 @@ class BenchmarkCleaner:
             input_columns=["__id__", column],
             remove_columns=[column],
             num_proc=self.num_workers,
-            desc=f"Fingerprinting...",
+            desc=f"Fingerprinting dataset...",
         )
         # remove unused columns
         hashed_ds = hashed_ds.remove_columns([c for c in hashed_ds.column_names if c not in ["__id__", "__signature__"]])
-        benchmarks = [load_from_disk(path) for path in self.benchmarks_paths]
+        benchmarks = []
+        for path in tqdm(self.benchmarks_paths, desc="Loading benchmark datasets..."):
+            benchmarks.append(load_from_disk(path))
         benchmarks = concatenate_datasets(benchmarks)
         # Update indices to be global.
         benchmarks = benchmarks.map(
             lambda _, idx: {"__id__": idx},
             with_indices=True,
             num_proc=self.num_workers,
-            desc="Adding index...",
+            desc="Adding index to benchmarks...",
         )
         minhash = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
         with minhash.insertion_session() as session:
