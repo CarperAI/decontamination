@@ -244,12 +244,9 @@ class BenchmarkCleaner:
             benchmarks.append(load_from_disk(path))
         benchmarks = concatenate_datasets(benchmarks)
         # Update indices to be global.
-        benchmarks = benchmarks.map(
-            lambda _, idx: {"__id__": idx},
-            with_indices=True,
-            num_proc=self.num_workers,
-            desc="Adding index to benchmarks...",
-        )
+        ids = [i for i in range(len(benchmarks))]
+        benchmarks = benchmarks.remove_columns(["__id__"])
+        benchmarks = benchmarks.add_column("__id__", ids)
         minhash_path = os.path.join(self.output_dir, "minhash_index.pkl")
         if os.path.exists(minhash_path):
             logger.info("MinHashLSH index already exists. Loading from disk...")
@@ -266,11 +263,13 @@ class BenchmarkCleaner:
             # Save the MinHashLSH index.
             with open(os.path.join(self.output_dir, "minhash_index.pkl"), "wb") as f:
                 pickle.dump(minhash, f)
+            
+            logger.info("MinHashLSH index created and saved to disk.")
         
+        logger.info("Querying MinHashLSH index...")
         # Query the MinHashLSH index for each record in the provided dataset against the benchmark datasets.
         queried = hashed_ds.map(
             function=lambda x, y: query_content(x, y, index=minhash),
-            num_proc=self.num_workers,
             input_columns=[
                 "__id__",
                 "__signature__",
