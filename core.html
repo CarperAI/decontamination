@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.475">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Fill in a module description here">
+
+<title>decontamination - core</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="decontamination - core">
+<meta property="og:description" content="Fill in a module description here">
+<meta property="og:site-name" content="decontamination">
+<meta name="twitter:title" content="decontamination - core">
+<meta name="twitter:description" content="Fill in a module description here">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">decontamination</span>
+    </a>
+  </div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">core</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">decontamination</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link active">core</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#hash_content" id="toc-hash_content" class="nav-link active" data-scroll-target="#hash_content">hash_content</a></li>
+  <li><a href="#query_content" id="toc-query_content" class="nav-link" data-scroll-target="#query_content">query_content</a></li>
+  <li><a href="#jaccard_similarity" id="toc-jaccard_similarity" class="nav-link" data-scroll-target="#jaccard_similarity">jaccard_similarity</a></li>
+  <li><a href="#convert_list_to_dict" id="toc-convert_list_to_dict" class="nav-link" data-scroll-target="#convert_list_to_dict">convert_list_to_dict</a></li>
+  <li><a href="#config_lists" id="toc-config_lists" class="nav-link" data-scroll-target="#config_lists">config_lists</a></li>
+  <li><a href="#process_ds_config" id="toc-process_ds_config" class="nav-link" data-scroll-target="#process_ds_config">process_ds_config</a></li>
+  <li><a href="#parallelized_function" id="toc-parallelized_function" class="nav-link" data-scroll-target="#parallelized_function">parallelized_function</a></li>
+  <li><a href="#process_record" id="toc-process_record" class="nav-link" data-scroll-target="#process_record">process_record</a></li>
+  <li><a href="#benchmarkcleaner" id="toc-benchmarkcleaner" class="nav-link" data-scroll-target="#benchmarkcleaner">BenchmarkCleaner</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/CarperAI/decontamination/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">core</h1>
+</div>
+
+<div>
+  <div class="description">
+    Fill in a module description here
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L38" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="hash_content" class="level3">
+<h3 class="anchored" data-anchor-id="hash_content">hash_content</h3>
+<blockquote class="blockquote">
+<pre><code> hash_content (idx:int, content:str, num_perm:int)</code></pre>
+</blockquote>
+<p>Hash the content of a record using MinHash. This function should be used with multiprocessing and it scales well with the number of cores.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>idx</td>
+<td>int</td>
+<td>index of the document</td>
+</tr>
+<tr class="even">
+<td>content</td>
+<td>str</td>
+<td>content of the document</td>
+</tr>
+<tr class="odd">
+<td>num_perm</td>
+<td>int</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> hash_content(<span class="dv">0</span>, <span class="st">"Hello world!"</span>, num_perm<span class="op">=</span><span class="dv">128</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> result[<span class="st">"__id__"</span>] <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> result[<span class="st">"__signature__"</span>].shape <span class="op">==</span> (<span class="dv">128</span>,)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> result[<span class="st">"__signature__"</span>].dtype <span class="op">==</span> np.dtype(<span class="st">'uint64'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L53" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="query_content" class="level3">
+<h3 class="anchored" data-anchor-id="query_content">query_content</h3>
+<blockquote class="blockquote">
+<pre><code> query_content (idx:int, signature:numpy.ndarray,
+                index:datasketch.lsh.MinHashLSH)</code></pre>
+</blockquote>
+<p>Query the MinHashLSH index for the record. This function can be used with multiprocessing as long as the index is shared across processes. Parameters.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>idx</td>
+<td>int</td>
+<td>index of the document</td>
+</tr>
+<tr class="even">
+<td>signature</td>
+<td>ndarray</td>
+<td>MinHash signature of the document</td>
+</tr>
+<tr class="odd">
+<td>index</td>
+<td>MinHashLSH</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L75" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="jaccard_similarity" class="level3">
+<h3 class="anchored" data-anchor-id="jaccard_similarity">jaccard_similarity</h3>
+<blockquote class="blockquote">
+<pre><code> jaccard_similarity (s1:str, s2:str)</code></pre>
+</blockquote>
+<p>Calculate the jaccard similarity between two code snippets.</p>
+<table class="table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 38%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>s1</td>
+<td>str</td>
+<td>The first string to compare.</td>
+</tr>
+<tr class="even">
+<td>s2</td>
+<td>str</td>
+<td>The second string to compare.</td>
+</tr>
+<tr class="odd">
+<td><strong>Returns</strong></td>
+<td><strong>float</strong></td>
+<td><strong>The Jaccard similarity between the two strings.</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jaccard_similarity(<span class="st">"a = 1"</span>, <span class="st">"a = 2"</span>) <span class="op">==</span> <span class="fl">0.3333333333333333</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jaccard_similarity(<span class="st">"a = 1"</span>, <span class="st">"a = 1"</span>) <span class="op">==</span> <span class="fl">1.0</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L87" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="convert_list_to_dict" class="level3">
+<h3 class="anchored" data-anchor-id="convert_list_to_dict">convert_list_to_dict</h3>
+<blockquote class="blockquote">
+<pre><code> convert_list_to_dict (list)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L100" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="config_lists" class="level3">
+<h3 class="anchored" data-anchor-id="config_lists">config_lists</h3>
+<blockquote class="blockquote">
+<pre><code> config_lists (name)</code></pre>
+</blockquote>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">"HF_ACCESS_TOKEN"</span>] <span class="op">=</span> <span class="st">"&lt;TOKEN&gt;"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ds_dict <span class="op">=</span> config_lists(<span class="st">"lambada"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ds_dict</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'plain_text': ['test', 'validation']}</code></pre>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L114" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="process_ds_config" class="level3">
+<h3 class="anchored" data-anchor-id="process_ds_config">process_ds_config</h3>
+<blockquote class="blockquote">
+<pre><code> process_ds_config (name, ds_dict, output_dir)</code></pre>
+</blockquote>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ds, name <span class="op">=</span> <span class="bu">next</span>(process_ds_config(<span class="st">"lambada"</span>, ds_dict, <span class="st">"/tmp"</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ds.features</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Downloading builder script: 100%|██████████| 4.92k/4.92k [00:00&lt;00:00, 2.58MB/s]
+Downloading readme: 100%|██████████| 7.06k/7.06k [00:00&lt;00:00, 6.25MB/s]</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Downloading and preparing dataset lambada/plain_text to /home/nathan/.cache/huggingface/datasets/lambada/plain_text/1.1.0/9f7bada20233bfec7d1d888d179c81442d504fb3d0dd97cddeba020b19924373...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>                                                                                         </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dataset lambada downloaded and prepared to /home/nathan/.cache/huggingface/datasets/lambada/plain_text/1.1.0/9f7bada20233bfec7d1d888d179c81442d504fb3d0dd97cddeba020b19924373. Subsequent calls will reuse this data.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre><code>{'text': Value(dtype='string', id=None),
+ 'domain': Value(dtype='string', id=None)}</code></pre>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L147" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="parallelized_function" class="level3">
+<h3 class="anchored" data-anchor-id="parallelized_function">parallelized_function</h3>
+<blockquote class="blockquote">
+<pre><code> parallelized_function (queried, check_for_fp, ds, column, benchmarks,
+                        threshold, num_workers)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L134" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="process_record" class="level3">
+<h3 class="anchored" data-anchor-id="process_record">process_record</h3>
+<blockquote class="blockquote">
+<pre><code> process_record (record, check_for_fp, ds, column, benchmarks, threshold)</code></pre>
+</blockquote>
+<hr>
+<p><a href="https://github.com/CarperAI/decontamination/blob/main/decontamination/core.py#L154" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="benchmarkcleaner" class="level3">
+<h3 class="anchored" data-anchor-id="benchmarkcleaner">BenchmarkCleaner</h3>
+<blockquote class="blockquote">
+<pre><code> BenchmarkCleaner (benchmark_names:list, output_dir:str,
+                   threshold:float=0.5, num_perm:int=128,
+                   num_workers:int=1)</code></pre>
+</blockquote>
+<p>A class to clean the benchmark dataset.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>benchmark_names</td>
+<td>list</td>
+<td></td>
+<td>The list of benchmark names to clean.</td>
+</tr>
+<tr class="even">
+<td>output_dir</td>
+<td>str</td>
+<td></td>
+<td>The output directory to save the cleaned datasets and intermediate results.</td>
+</tr>
+<tr class="odd">
+<td>threshold</td>
+<td>float</td>
+<td>0.5</td>
+<td>The threshold to use for the MinHashLSH index.</td>
+</tr>
+<tr class="even">
+<td>num_perm</td>
+<td>int</td>
+<td>128</td>
+<td>The number of permutations to use for the MinHashLSH index.</td>
+</tr>
+<tr class="odd">
+<td>num_workers</td>
+<td>int</td>
+<td>1</td>
+<td>The number of workers to use for the MinHashLSH index.</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>benchmark_names <span class="op">=</span> [<span class="st">"openai_humaneval"</span>, <span class="st">"mbpp"</span>]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ds <span class="op">=</span> load_dataset(<span class="st">"bigcode/the-stack-smol"</span>, data_dir<span class="op">=</span><span class="st">"data/python"</span>, split<span class="op">=</span><span class="st">"train"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>bench_cleaner <span class="op">=</span> BenchmarkCleaner(benchmark_names, <span class="st">"/tmp/decontamination"</span>, threshold<span class="op">=</span><span class="fl">0.85</span>, num_perm<span class="op">=</span><span class="dv">256</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>ds <span class="op">=</span> bench_cleaner.clean(ds, <span class="st">"content"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Downloading readme: 100%|██████████| 6.40k/6.40k [00:00&lt;00:00, 5.31MB/s]
+Downloading readme: 100%|██████████| 8.60k/8.60k [00:00&lt;00:00, 7.81MB/s]                    
+                                                                                             </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Downloading and preparing dataset mbpp/sanitized to /home/nathan/.cache/huggingface/datasets/mbpp/sanitized/1.0.2/4458a31cd4305553c8e88e3f0bfb94fc74fe1a9faeeb8c32ed166939735eaeff...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Downloading data: 255kB [00:00, 11.7MB/s]                    
+                                                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dataset mbpp downloaded and prepared to /home/nathan/.cache/huggingface/datasets/mbpp/sanitized/1.0.2/4458a31cd4305553c8e88e3f0bfb94fc74fe1a9faeeb8c32ed166939735eaeff. Subsequent calls will reuse this data.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading benchmark datasets...: 100%|██████████| 7/7 [00:00&lt;00:00, 1006.31it/s]               </code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[04/21/23 17:26:55] </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> MinHashLSH index does not exist. Creating<span style="color: #808000; text-decoration-color: #808000">...</span>                         <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#100" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">100</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Inserting benchmarks into MinHashLSH index...: 100%|██████████| 1071/1071 [00:00&lt;00:00, 7141.44it/s]</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> MinHashLSH index created and saved to disk.                          <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#111" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">111</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Querying MinHashLSH index<span style="color: #808000; text-decoration-color: #808000">...</span>                                         <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#113" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">113</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>                                                                          </code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[04/21/23 17:26:56] </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Data Number                   : <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10000</span>                                <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#152" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">152</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Duplicate Number              : <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>                                    <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#153" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">153</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Duplicate Rate                : <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.00</span>%                                <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#154" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">154</span></a>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">                    </span><span style="color: #000080; text-decoration-color: #000080">INFO    </span> Total Time                    : <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">20.31</span> seconds                        <a href="file:///tmp/ipykernel_150359/2325999894.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">2325999894.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///tmp/ipykernel_150359/2325999894.py#155" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">155</span></a>
+</pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
