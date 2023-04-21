@@ -223,12 +223,8 @@ class BenchmarkCleaner:
         """
         start_time = time.time()
         DATA_SIZE = len(ds)
-        ds = ds.map(
-            lambda _, idx: {"__id__": idx},
-            with_indices=True,
-            num_proc=self.num_workers,
-            desc="Adding index to dataset...",
-        )
+        ids = [i for i in range(len(ds))]
+        ds = ds.add_column("__id__", ids)
         hashed_ds = ds.map(
             function=hash_content,
             fn_kwargs={"num_perm": self.num_perm},
@@ -288,7 +284,11 @@ class BenchmarkCleaner:
             desc=f"Filtering...",
         )
 
-        dup_ids = parallelized_function(queried, check_for_fp, ds, column,benchmarks, self.threshold, self.num_workers)
+        dup_ids = []
+        for record in queried:
+            dup_id = process_record(record, check_for_fp, ds, column, benchmarks, self.threshold)
+            if dup_id is not None:
+                dup_ids.append(dup_id)
         
         # Filter out the duplicate ids.
         final_data = ds.filter(
